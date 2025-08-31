@@ -1,0 +1,95 @@
+### WhatsApp API Testing
+### Base URL: http://localhost:3001/api
+
+### 1. Check API Health
+GET http://localhost:3001/health
+
+### 2. Get WhatsApp Connection Status
+GET http://localhost:3001/api/message/status
+
+### 3. Send Text Message
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6281234567890",
+  "message": "Hello from WhatsApp API! 🚀"
+}
+
+### 4. Send Message to Different Number
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6285158226609",
+  "message": "Test message from API"
+}
+
+### 5. Get Received Messages
+GET http://localhost:3001/api/message/received
+
+### 6. Get Received Messages with Limit
+GET http://localhost:3001/api/message/received?limit=10
+
+### 7. Clear Received Messages
+DELETE http://localhost:3001/api/message/received
+
+### 8. Test Error Handling - Missing Fields
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6281234567890"
+}
+
+### 9. Test Error Handling - Invalid JSON
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6281234567890",
+  "message": "Test message"
+  // Invalid JSON comment
+}
+
+### 10. Send Message with Emoji
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6287733760363",
+  "message": "This is a long message to test the WhatsApp API. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+}
+
+### 11. Send Long Message
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6281234567890",
+  "message": "This is a long message to test the WhatsApp API. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+}
+
+### 12. Get All WhatsApp Groups
+GET http://localhost:3001/api/message/groups
+
+### 13. Reset WhatsApp Session (for banned/error phones)
+POST http://localhost:3001/api/message/reset-session
+
+### 14. Root API Endpoint
+GET http://localhost:3001/
+
+### Notes:
+### - Replace phone numbers with actual WhatsApp numbers
+### - Phone numbers should be in international format without + sign
+### - Make sure WhatsApp is connected before sending messages
+### - Use the status endpoint to check connection before sending
+### - Use reset-session endpoint if phone gets banned or has persistent connection issues
+### - After session reset, you'll need to scan QR code again
+###
+### Human-like Behavior Features:
+### - Messages are sent with realistic delays (seen → typing → send)
+### - Typing indicators show for calculated time based on message length
+### - Random delays between 1-3 seconds for natural behavior
+### - Automatic read receipts for incoming messages
+### - Online presence management
