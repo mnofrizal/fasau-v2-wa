@@ -1,1 +1,1 @@
-tolong buatkan saya simple whataap api endpoint dengan expres dan baileys,
+tolong buatkan saya simple whataap api endpoint dengan expres dan baileys, dengan fitur trigger otomatis yang merespon pesan dengan prefix tertentu (.a1, .help, .ping) menggunakan quoted reply messages

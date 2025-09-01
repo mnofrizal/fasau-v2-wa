@@ -41,9 +41,14 @@ const sendOnlinePresence = async (sock) => {
 };
 
 // Human-like message sending sequence
-const sendHumanLikeMessage = async (sock, jid, message) => {
+const sendHumanLikeMessage = async (sock, jid, message, options = {}) => {
   try {
-    logger.info(`🤖 Starting human-like message sequence to ${jid}`);
+    const isReply = options.quoted ? true : false;
+    logger.info(
+      `🤖 Starting human-like ${
+        isReply ? "reply" : "message"
+      } sequence to ${jid}`
+    );
 
     // Get human-like timings
     const timings = getHumanTimings(message);
@@ -65,14 +70,30 @@ const sendHumanLikeMessage = async (sock, jid, message) => {
     // Step 4: Small delay before sending message
     await sleep(timings.sendDelay);
 
-    // Step 5: Send the actual message
-    const result = await sock.sendMessage(jid, { text: message });
+    // Step 5: Send the actual message (with quote if it's a reply)
+    let result;
+    if (options.quoted) {
+      // Send as reply message using Baileys' reply method
+      logger.debug("📝 Sending quoted reply message");
+      result = await sock.sendMessage(
+        jid,
+        { text: message },
+        { quoted: options.quoted }
+      );
+    } else {
+      // Send as regular message
+      result = await sock.sendMessage(jid, { text: message });
+    }
 
     // Step 6: Set presence back to available
     await sleep(200);
     await sendOnlinePresence(sock);
 
-    logger.info(`✅ Human-like message sent successfully to ${jid}`);
+    logger.info(
+      `✅ Human-like ${
+        isReply ? "reply" : "message"
+      } sent successfully to ${jid}`
+    );
     return result;
   } catch (error) {
     logger.error(`❌ Error in human-like message sequence: ${error.message}`);

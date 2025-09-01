@@ -114,8 +114,8 @@ npm start
 ### API Testing
 
 - **REST Client**: VS Code REST Client extension
-- **Test File**: `rest/message.rest` with comprehensive test cases
-- **Endpoints**: Send messages, get status, manage groups
+- **Test Files**: `rest/message.rest` and `rest/trigger.rest` with comprehensive test cases
+- **Endpoints**: Send messages, get status, manage groups, trigger configuration
 
 ### Debugging
 
@@ -150,3 +150,11 @@ npm start
 - **Async Wrappers**: Automatic error catching for async functions
 - **Context Logging**: Error logging with function context
 - **Graceful Degradation**: Continue operation despite non-critical errors
+
+### Trigger System Architecture
+
+- **Hardcoded Configuration**: Triggers defined in code, not database
+- **Global Enable/Disable**: Single boolean flag controls all triggers
+- **Quoted Replies**: Uses Baileys quoted message format for proper WhatsApp replies
+- **Human-like Behavior**: Applies same timing and behavior patterns as regular messages
+- **Prefix Matching**: Simple string prefix detection for trigger activation

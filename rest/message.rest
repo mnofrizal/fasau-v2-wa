@@ -93,3 +93,66 @@ GET http://localhost:3001/
 ### - Random delays between 1-3 seconds for natural behavior
 ### - Automatic read receipts for incoming messages
 ### - Online presence management
+###
+### Trigger System Features:
+### - Auto-response to messages with specific prefixes (e.g., .a1)
+### - Enable/disable triggers globally via API
+### - Manage individual triggers (create, update, delete)
+### - Human-like behavior for auto-responses
+
+### 15. Enable Triggers
+POST http://localhost:3001/api/trigger/status
+Content-Type: application/json
+
+{
+  "enabled": true
+}
+
+### 16. Get Trigger Configuration
+GET http://localhost:3001/api/trigger
+
+### 17. Test Trigger Response - Send .a1 message
+### (This should trigger auto-response "Siap Bos" if triggers are enabled)
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6287733760363",
+  "message": ".a1"
+}
+
+### 18. Create Custom Trigger
+POST http://localhost:3001/api/trigger
+Content-Type: application/json
+
+{
+  "prefix": ".test",
+  "response": "This is a test response from the bot!",
+  "description": "Test trigger for demonstration"
+}
+
+### 19. Test Custom Trigger - Send .test message
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6287733760363",
+  "message": ".test"
+}
+
+### 20. Disable Triggers
+POST http://localhost:3001/api/trigger/status
+Content-Type: application/json
+
+{
+  "enabled": false
+}
+
+### 21. Test Disabled Trigger - Send .a1 message (should not auto-respond)
+POST http://localhost:3001/api/message/send
+Content-Type: application/json
+
+{
+  "to": "6287733760363",
+  "message": ".a1 this should not trigger auto-response"
+}

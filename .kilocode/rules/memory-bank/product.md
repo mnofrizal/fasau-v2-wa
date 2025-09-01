@@ -37,11 +37,20 @@ A simple yet powerful WhatsApp API endpoint built with Express.js and Baileys li
 
 ### Advanced Features
 
+- **Trigger System**: Automatic responses to specific prefixes with quoted replies
 - Beautiful Winston logging system
 - Centralized response handlers
 - PreKeyError handling for updated Baileys versions
 - Human behavior simulation utilities
 - Comprehensive REST API testing file
+
+### Trigger System
+
+- **Hardcoded Triggers**: Pre-configured commands (.a1, .help, .ping)
+- **Quoted Replies**: All auto-responses sent as quoted messages
+- **Default Enabled**: Triggers active by default when server starts
+- **Global Control**: Simple API to enable/disable all triggers
+- **Human-like Behavior**: Realistic typing delays and timing for auto-responses
 
 ## User Experience Goals
 

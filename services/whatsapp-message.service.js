@@ -3,6 +3,7 @@ import {
   sendHumanLikeMessage,
   simulateReadMessage,
 } from "../utils/humanBehavior.js";
+import { processTriggers } from "./whatsapp-trigger.service.js";
 
 // Message storage
 let receivedMessages = [];
@@ -123,6 +124,27 @@ const processIncomingMessage = async (sock, message) => {
 
       // Simulate human-like reading behavior
       await simulateReadMessage(sock, message.key);
+
+      // Process triggers for auto-response
+      try {
+        const triggerResult = await processTriggers(
+          sock,
+          messageData,
+          message.key,
+          message
+        );
+        if (triggerResult && triggerResult.triggered) {
+          const responsePreview =
+            triggerResult.response?.message?.substring(0, 50) ||
+            "Report generated";
+          logger.info(
+            `🎯 Trigger executed: ${triggerResult.trigger.prefix} -> ${responsePreview}...`
+          );
+        }
+      } catch (triggerError) {
+        logger.error("❌ Error processing triggers:", triggerError);
+        // Don't throw error, continue with normal message processing
+      }
 
       // Keep only last 100 messages to prevent memory issues
       if (receivedMessages.length > 100) {

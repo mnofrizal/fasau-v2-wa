@@ -1,0 +1,72 @@
+### WhatsApp Trigger API Testing (Enhanced .a1 Report Function)
+### Base URL: http://localhost:3001/api/trigger
+
+@baseUrl = http://localhost:3001/api/trigger
+
+### 1. Get trigger configuration and status (read-only)
+GET {{baseUrl}}
+Content-Type: application/json
+
+### 2. Enable triggers globally (triggers are enabled by default)
+POST {{baseUrl}}/status
+Content-Type: application/json
+
+{
+  "enabled": true
+}
+
+### 3. Disable triggers globally
+POST {{baseUrl}}/status
+Content-Type: application/json
+
+{
+  "enabled": false
+}
+
+### 4. Test invalid status update (non-boolean)
+POST {{baseUrl}}/status
+Content-Type: application/json
+
+{
+  "enabled": "yes"
+}
+
+### 5. Test enhanced triggers via WhatsApp:
+### Send these messages to your WhatsApp bot to test:
+### 
+### A. Enhanced .a1 trigger (report function):
+### - ".a1 laporan ada kerusakan plafond" → Should respond with formatted report
+### - ".a1 ada masalah di kantor" → Should respond with formatted report  
+### - ".a1 kerusakan AC ruang meeting" → Should respond with formatted report
+### - ".a1" → Should respond with usage instructions
+### 
+### B. Simple triggers:
+### - ".help" → Should respond with available commands (enhanced format)
+### - ".ping" → Should respond with "Pong! 🏓"
+
+### Note: Triggers are now hardcoded and cannot be modified via API
+### Available hardcoded triggers:
+### - .a1 <pesan> → Creates formatted report with sender info, timestamp, and message
+### - .help → Shows available commands with enhanced formatting  
+### - .ping → Simple pong response
+### 
+### Enhanced .a1 trigger response format:
+### 📋 LAPORAN DITERIMA
+###     
+### Pelapor: [WhatsApp Display Name]
+### Nomor HP: [Phone Number from WhatsApp]
+### Waktu: [Indonesian Timestamp - Asia/Jakarta timezone]
+### Pesan: [Message content without .a1 prefix]
+### 
+### Status: ✅ Laporan telah diterima dan akan diproses
+### 
+### Example usage:
+### Input: ".a1 laporan ada kerusakan plafond"
+### Output: Formatted report with all sender details and timestamp
+### 
+### Input: ".a1"
+### Output: "Format: .a1 <pesan laporan>\nContoh: .a1 laporan ada kerusakan plafond"
+### 
+### Triggers are enabled by default when server starts
+### Only global enable/disable functionality is available via API
+### Function-based triggers (.a1) process message content dynamically

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import config from "./config/config.js";
 import messageRoutes from "./routes/message.routes.js";
+import triggerRoutes from "./routes/trigger.routes.js";
 import { initializeWhatsApp } from "./services/whatsapp.service.js";
 import logger from "./config/logger.js";
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use(`${config.server.apiPrefix}/message`, messageRoutes);
+app.use(`${config.server.apiPrefix}/trigger`, triggerRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -36,6 +38,8 @@ app.get("/", (req, res) => {
       getMessages: "GET /api/message/received",
       clearMessages: "DELETE /api/message/received",
       getStatus: "GET /api/message/status",
+      getTriggers: "GET /api/trigger",
+      setTriggerStatus: "POST /api/trigger/status",
     },
   });
 });
@@ -74,6 +78,15 @@ const startServer = () => {
     logger.info(`   - GET  ${config.server.apiPrefix}/message/status`);
     logger.info(`   - GET  ${config.server.apiPrefix}/message/groups`);
     logger.info(`   - POST ${config.server.apiPrefix}/message/reset-session`);
+    logger.info(`   - GET  ${config.server.apiPrefix}/trigger (read-only)`);
+    logger.info(
+      `   - POST ${config.server.apiPrefix}/trigger/status (enable/disable)`
+    );
+    logger.info("");
+    logger.info("🤖 Triggers enabled by default with hardcoded commands:");
+    logger.info("   - .a1 → Siap Bos");
+    logger.info("   - .help → Show available commands");
+    logger.info("   - .ping → Pong! 🏓");
     logger.info("");
 
     // Initialize WhatsApp after server starts

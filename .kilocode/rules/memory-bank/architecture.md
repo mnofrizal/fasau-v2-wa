@@ -10,17 +10,21 @@ whatsapp-api/
 │   ├── config.js             # Centralized app configuration
 │   └── logger.js             # Winston logging setup
 ├── controllers/              # Request handling layer
-│   └── message.controller.js # Message & group controllers
+│   ├── message.controller.js # Message & group controllers
+│   └── trigger.controller.js # Trigger management controllers
 ├── services/                 # Business logic layer
-│   └── whatsapp.service.js   # Baileys WhatsApp integration
+│   ├── whatsapp.service.js   # Baileys WhatsApp integration
+│   └── whatsapp-trigger.service.js # Trigger system logic
 ├── routes/                   # API routing layer
-│   └── message.routes.js     # REST API routes
+│   ├── message.routes.js     # REST API routes
+│   └── trigger.routes.js     # Trigger API routes
 ├── utils/                    # Utility functions
 │   ├── timing.js            # Random delays & timing
 │   ├── humanBehavior.js     # Human-like messaging
 │   └── responseHandler.js   # Centralized API responses
 ├── rest/                     # API testing
-│   └── message.rest         # REST client tests
+│   ├── message.rest         # REST client tests
+│   └── trigger.rest         # Trigger API tests
 ├── auth_info_baileys/        # Session storage
 ├── logs/                     # Winston log files
 └── app.js                    # Express application entry
@@ -104,6 +108,16 @@ Connection Error → Reconnection Logic → Attempt Counter
 Message Request → getHumanTimings() → Random Delays
                         ↓
                 sendOnlinePresence() → sendSeen() → sendTyping() → sendMessage()
+```
+
+### 4. **Trigger System Flow**
+
+```
+Incoming Message → processIncomingMessage() → processTriggers()
+                                ↓
+                        Trigger Match Found → sendReplyMessage()
+                                ↓
+                        Human Behavior → Quoted Reply → WhatsApp
 ```
 
 ## Design Patterns
