@@ -154,7 +154,13 @@ npm start
 ### Trigger System Architecture
 
 - **Hardcoded Configuration**: Triggers defined in code, not database
+- **Function-Based Triggers**: Dynamic trigger handlers that process message content rather than static responses
+- **Advanced .a1 Trigger**: Complex message processing for business reporting with sender information extraction
+- **Smart Sender Detection**: Automatic extraction of WhatsApp display names, phone numbers, and business verification status
+- **Professional Reporting**: Formatted reports with timestamps, phone numbers, and structured content
+- **Indonesian Localization**: Timestamp formatting for Asia/Jakarta timezone
 - **Global Enable/Disable**: Single boolean flag controls all triggers
 - **Quoted Replies**: Uses Baileys quoted message format for proper WhatsApp replies
 - **Human-like Behavior**: Applies same timing and behavior patterns as regular messages
 - **Prefix Matching**: Simple string prefix detection for trigger activation
+- **Modular Architecture**: Separated configuration and handlers into dedicated files (triggerList.config.js, triggerHandlerList.js)

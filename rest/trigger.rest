@@ -33,14 +33,20 @@ Content-Type: application/json
 
 ### 5. Test enhanced triggers via WhatsApp:
 ### Send these messages to your WhatsApp bot to test:
-### 
-### A. Enhanced .a1 trigger (report function):
+###
+### A. Enhanced .a1 trigger (report function) - TEXT MESSAGES:
 ### - ".a1 laporan ada kerusakan plafond" → Should respond with formatted report
-### - ".a1 ada masalah di kantor" → Should respond with formatted report  
+### - ".a1 ada masalah di kantor" → Should respond with formatted report
 ### - ".a1 kerusakan AC ruang meeting" → Should respond with formatted report
 ### - ".a1" → Should respond with usage instructions
-### 
-### B. Simple triggers:
+###
+### B. Enhanced .a1 trigger (report function) - MEDIA MESSAGES:
+### - Send an IMAGE with caption ".a1 foto kerusakan plafond" → Should respond with formatted report including "Tipe: Gambar"
+### - Send a VIDEO with caption ".a1 video masalah AC" → Should respond with formatted report including "Tipe: Video"
+### - Send a DOCUMENT with caption ".a1 laporan lengkap kerusakan" → Should respond with formatted report including "Tipe: Dokumen"
+### - Send media without caption or with empty caption → Should be ignored (no trigger response)
+###
+### C. Simple triggers:
 ### - ".help" → Should respond with available commands (enhanced format)
 ### - ".ping" → Should respond with "Pong! 🏓"
 
@@ -52,18 +58,25 @@ Content-Type: application/json
 ### 
 ### Enhanced .a1 trigger response format:
 ### 📋 LAPORAN DITERIMA
-###     
+###
 ### Pelapor: [WhatsApp Display Name]
 ### Nomor HP: [Phone Number from WhatsApp]
 ### Waktu: [Indonesian Timestamp - Asia/Jakarta timezone]
+### Tipe: [Message Type - always shown: Teks/Gambar/Video/Dokumen/Audio/etc]
 ### Pesan: [Message content without .a1 prefix]
-### 
+###
 ### Status: ✅ Laporan telah diterima dan akan diproses
-### 
+###
 ### Example usage:
+### TEXT MESSAGE:
 ### Input: ".a1 laporan ada kerusakan plafond"
-### Output: Formatted report with all sender details and timestamp
-### 
+### Output: Formatted report with sender details, timestamp, and "Tipe: Teks"
+###
+### MEDIA MESSAGE:
+### Input: Image with caption ".a1 foto kerusakan plafond"
+### Output: Formatted report with sender details, timestamp, and "Tipe: Gambar"
+###
+### USAGE HELP:
 ### Input: ".a1"
 ### Output: "Format: .a1 <pesan laporan>\nContoh: .a1 laporan ada kerusakan plafond"
 ### 

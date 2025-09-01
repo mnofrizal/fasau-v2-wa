@@ -8,20 +8,23 @@ The WhatsApp API follows a clean, modular architecture with clear separation of 
 whatsapp-api/
 ├── config/                    # Configuration layer
 │   ├── config.js             # Centralized app configuration
-│   └── logger.js             # Winston logging setup
+│   ├── logger.js             # Winston logging setup
+│   └── triggerList.config.js # Trigger configuration list
 ├── controllers/              # Request handling layer
 │   ├── message.controller.js # Message & group controllers
 │   └── trigger.controller.js # Trigger management controllers
 ├── services/                 # Business logic layer
 │   ├── whatsapp.service.js   # Baileys WhatsApp integration
-│   └── whatsapp-trigger.service.js # Trigger system logic
+│   ├── whatsapp-trigger.service.js # Trigger system logic
+│   └── whatsapp-message.service.js # Message processing with sender extraction
 ├── routes/                   # API routing layer
 │   ├── message.routes.js     # REST API routes
 │   └── trigger.routes.js     # Trigger API routes
 ├── utils/                    # Utility functions
 │   ├── timing.js            # Random delays & timing
 │   ├── humanBehavior.js     # Human-like messaging
-│   └── responseHandler.js   # Centralized API responses
+│   ├── responseHandler.js   # Centralized API responses
+│   └── triggerHandlerList.js # Trigger handler functions
 ├── rest/                     # API testing
 │   ├── message.rest         # REST client tests
 │   └── trigger.rest         # Trigger API tests
@@ -115,7 +118,11 @@ Message Request → getHumanTimings() → Random Delays
 ```
 Incoming Message → processIncomingMessage() → processTriggers()
                                 ↓
-                        Trigger Match Found → sendReplyMessage()
+                        Trigger Match Found → triggerHandlerList.js
+                                ↓
+                        Message Processing (.a1: extract content, sender info)
+                                ↓
+                        Format Response (timestamp, reporter details)
                                 ↓
                         Human Behavior → Quoted Reply → WhatsApp
 ```

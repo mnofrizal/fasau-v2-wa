@@ -53,21 +53,26 @@ const extractMessageContent = (message) => {
 };
 
 // Extract sender information
-const extractSenderInfo = (messageKey) => {
+const extractSenderInfo = (messageKey, message) => {
   const senderJid = messageKey.remoteJid;
   const isGroup = senderJid.includes("@g.us");
   const senderPhone = senderJid.split("@")[0];
 
-  return { senderJid, isGroup, senderPhone };
+  // Extract sender name from message
+  const senderName =
+    message?.pushName || message?.verifiedBizName || "Unknown User";
+
+  return { senderJid, isGroup, senderPhone, senderName };
 };
 
 // Process incoming message
 const processIncomingMessage = async (sock, message) => {
   try {
     if (!message.key.fromMe && message.message) {
-      // Extract sender information
-      const { senderJid, isGroup, senderPhone } = extractSenderInfo(
-        message.key
+      // Extract sender information (including name)
+      const { senderJid, isGroup, senderPhone, senderName } = extractSenderInfo(
+        message.key,
+        message
       );
 
       // Extract message content
@@ -77,6 +82,7 @@ const processIncomingMessage = async (sock, message) => {
         id: message.key.id,
         from: senderJid,
         senderPhone: senderPhone,
+        senderName: senderName,
         isGroup: isGroup,
         timestamp: message.messageTimestamp,
         message: messageText,
@@ -137,9 +143,7 @@ const processIncomingMessage = async (sock, message) => {
           const responsePreview =
             triggerResult.response?.message?.substring(0, 50) ||
             "Report generated";
-          logger.info(
-            `🎯 Trigger executed: ${triggerResult.trigger.prefix} -> ${responsePreview}...`
-          );
+          logger.info(`🎯 Trigger executed: ${triggerResult.trigger.prefix}`);
         }
       } catch (triggerError) {
         logger.error("❌ Error processing triggers:", triggerError);

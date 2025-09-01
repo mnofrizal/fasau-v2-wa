@@ -1,71 +1,10 @@
 import logger from "../config/logger.js";
 import { sendMessage } from "./whatsapp-message.service.js";
-
-// Hardcoded trigger configuration
-const triggerConfig = {
-  globalEnabled: true, // Default enabled
-  triggers: [
-    {
-      prefix: ".a1",
-      type: "function", // Special function-based trigger
-      handler: "handleA1Report",
-      enabled: true,
-    },
-    {
-      prefix: ".help",
-      response:
-        "📋 AVAILABLE COMMANDS:\n\n.a1 <pesan> - Buat laporan dengan format khusus\n  Contoh: .a1 laporan ada kerusakan plafond\n\n.help - Show this help\n.ping - Pong! 🏓",
-      enabled: true,
-    },
-    {
-      prefix: ".ping",
-      response: "Pong! 🏓",
-      enabled: true,
-    },
-  ],
-};
+import triggerConfigList from "../config/triggerList.config.js";
+import triggerHandlerList from "../utils/triggerHandlerList.js";
 
 // Global enabled state (separate from hardcoded config)
 let globalEnabled = true; // Default enabled when server starts
-
-// Helper function to format timestamp in Indonesian locale
-const formatTimestamp = () => {
-  const now = new Date();
-  const options = {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  };
-  return now.toLocaleString("id-ID", options);
-};
-
-// Handler for .a1 reports
-const handleA1Report = (messageText, senderInfo) => {
-  // Remove the .a1 prefix and trim
-  const reportContent = messageText.replace(/^\.a1\s*/, "").trim();
-
-  // If no content after .a1, show usage
-  if (!reportContent) {
-    return "Format: .a1 <pesan laporan>\nContoh: .a1 laporan ada kerusakan plafond";
-  }
-
-  // Create formatted report response
-  const response = `📋 LAPORAN DITERIMA
-    
-Pelapor: ${senderInfo.name || "Unknown"}
-Nomor HP: ${senderInfo.phoneNumber}
-Waktu: ${formatTimestamp()}
-Pesan: ${reportContent}
-
-Status: ✅ Laporan telah diterima dan akan diproses`;
-
-  return response;
-};
 
 // Check if triggers are enabled globally
 const isTriggersEnabled = () => {
@@ -87,7 +26,7 @@ const setTriggersEnabled = (enabled) => {
 const getTriggers = () => {
   return {
     enabled: globalEnabled,
-    triggers: triggerConfig.triggers,
+    triggers: triggerConfigList.triggers,
   };
 };
 
@@ -104,15 +43,30 @@ const processTriggers = async (
       return null;
     }
 
-    // Only process text messages
-    if (messageData.type !== "text" && messageData.type !== "extended_text") {
+    // Process text messages and media messages with captions
+    const supportedTypes = [
+      "text",
+      "extended_text",
+      "image",
+      "video",
+      "document",
+    ];
+    if (!supportedTypes.includes(messageData.type)) {
       return null;
+    }
+
+    // For media messages, check if there's a caption with trigger
+    if (["image", "video", "document"].includes(messageData.type)) {
+      // Media messages might not have captions or might have empty captions
+      if (!messageData.message || messageData.message.startsWith("[")) {
+        return null; // Skip media without captions or with default placeholders like "[Image]"
+      }
     }
 
     const messageText = messageData.message.trim();
 
     // Find matching trigger
-    const matchingTrigger = triggerConfig.triggers.find((trigger) => {
+    const matchingTrigger = triggerConfigList.triggers.find((trigger) => {
       return (
         trigger.enabled &&
         messageText.toLowerCase().startsWith(trigger.prefix.toLowerCase())
@@ -131,29 +85,26 @@ const processTriggers = async (
 
     // Handle function-based triggers
     if (matchingTrigger.type === "function" && matchingTrigger.handler) {
-      // Extract sender information from WhatsApp message data
-      // The pushName is available directly from the original message
-      const displayName =
-        originalMessage?.pushName ||
-        originalMessage?.verifiedBizName ||
-        "Unknown User";
-
+      // Extract sender information from message data (now includes senderName and media type)
       const senderInfo = {
         phoneNumber: messageData.senderPhone,
-        name: displayName,
+        name: messageData.senderName || "Unknown User",
         jid: originalMessageKey.remoteJid,
+        messageType: messageData.type, // Include media type information
       };
 
       logger.debug("Extracted sender info:", {
-        pushName: originalMessage?.pushName,
-        verifiedBizName: originalMessage?.verifiedBizName,
-        finalName: displayName,
+        senderName: messageData.senderName,
         phoneNumber: senderInfo.phoneNumber,
+        finalName: senderInfo.name,
       });
 
       // Call the appropriate handler function
-      if (matchingTrigger.handler === "handleA1Report") {
-        responseText = handleA1Report(messageText, senderInfo);
+      if (triggerHandlerList[matchingTrigger.handler]) {
+        responseText = triggerHandlerList[matchingTrigger.handler](
+          messageText,
+          senderInfo
+        );
       } else {
         responseText = "Handler function not found";
       }

@@ -47,6 +47,10 @@ A simple yet powerful WhatsApp API endpoint built with Express.js and Baileys li
 ### Trigger System
 
 - **Hardcoded Triggers**: Pre-configured commands (.a1, .help, .ping)
+- **Advanced .a1 Trigger**: Complex message processing for business reporting with sender information extraction
+- **Smart Sender Detection**: Automatic extraction of WhatsApp display names, phone numbers, and business verification status
+- **Professional Reporting**: Formatted reports with timestamps, phone numbers, and structured content
+- **Indonesian Localization**: Timestamp formatting for Asia/Jakarta timezone
 - **Quoted Replies**: All auto-responses sent as quoted messages
 - **Default Enabled**: Triggers active by default when server starts
 - **Global Control**: Simple API to enable/disable all triggers
