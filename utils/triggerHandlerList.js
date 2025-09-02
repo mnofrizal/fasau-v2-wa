@@ -1,4 +1,6 @@
 import logger from "../config/logger.js";
+import { downloadMediaMessage } from "@whiskeysockets/baileys";
+import { uploadImage } from "./amcloud.js";
 
 // Helper function to format timestamp in Indonesian locale
 const formatTimestamp = () => {
@@ -32,12 +34,59 @@ const formatMediaType = (messageType) => {
   return typeMap[messageType] || "Media";
 };
 
+// Helper function to process image upload
+const processImageUpload = async (originalMessage, reportContent) => {
+  try {
+    logger.info("🖼️ Processing image for .a1 report...");
+
+    // Download the image from WhatsApp
+    const buffer = await downloadMediaMessage(originalMessage, "buffer", {});
+
+    if (!buffer) {
+      throw new Error("Failed to download image buffer");
+    }
+
+    // Extract image metadata
+    const imageMessage = originalMessage.message.imageMessage;
+    const metadata = {
+      filename: `report_${Date.now()}.jpg`,
+      mimetype: imageMessage.mimetype || "image/jpeg",
+      description: reportContent, // Use report content as description for AMCloud
+      fileLength: buffer.length,
+    };
+
+    logger.info("📤 Uploading image to AMCloud...", {
+      size: buffer.length,
+      mimetype: metadata.mimetype,
+      description: metadata.description,
+    });
+
+    // Upload to AMCloud
+    const uploadResult = await uploadImage(buffer, metadata);
+
+    logger.info("✅ Image uploaded successfully", {
+      url: uploadResult.url,
+      fileId: uploadResult.fileId,
+    });
+
+    return uploadResult.url;
+  } catch (error) {
+    logger.error("❌ Error processing image for .a1 report:", error);
+    return null;
+  }
+};
+
 // Handler for .a1 reports
-const handleA1Report = (messageText, senderInfo) => {
+const handleA1Report = async (
+  messageText,
+  senderInfo,
+  originalMessage,
+  sock
+) => {
   // Remove the .a1 prefix and trim
   const reportContent = messageText.replace(/^\.a1\s*/, "").trim();
 
-  // If no content after .a1, show usage
+  // Validate input
   if (!reportContent) {
     return "Format: .a1 <pesan laporan>\nContoh: .a1 laporan ada kerusakan plafond";
   }
@@ -48,8 +97,16 @@ const handleA1Report = (messageText, senderInfo) => {
   // Determine message type for display
   const messageType = senderInfo.messageType || "text";
 
-  // Create formatted report response with media type information (always show type)
+  // Process image upload if message contains image
+  let imageUrl = null;
+  if (messageType === "image" && originalMessage && sock) {
+    imageUrl = await processImageUpload(originalMessage, reportContent);
+  }
+
+  // Create formatted report response
   const response = `📋 LAPORAN DITERIMA
+
+Image URL: ${imageUrl || "No Image"}
 
 Pelapor: ${senderInfo.name || "Unknown"}
 Nomor HP: ${senderInfo.phoneNumber}
@@ -68,4 +125,4 @@ const triggerHandlerList = {
 };
 
 export default triggerHandlerList;
-export { handleA1Report, formatTimestamp, formatMediaType };
+export { handleA1Report, formatTimestamp, formatMediaType, processImageUpload };

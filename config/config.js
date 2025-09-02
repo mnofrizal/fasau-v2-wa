@@ -13,6 +13,7 @@ const config = {
     webhookUrl: process.env.WEBHOOK_URL || "",
     markOnlineOnConnect: true,
     syncFullHistory: false,
+    messageAgeThreshold: parseInt(process.env.MESSAGE_AGE_THRESHOLD) || 60, // seconds
   },
   api: {
     cors: {
@@ -26,7 +27,7 @@ const config = {
       process.env.UPLOAD_ENDPOINT || "http://localhost:4500/api/media/upload",
     apiKey: process.env.UPLOAD_API_KEY || "3d1e6afaf37a41358970932c7dc6fe14",
     timeout: parseInt(process.env.UPLOAD_TIMEOUT) || 30000,
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 16 * 1024 * 1024, // 16MB
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024, // 10MB
     allowedTypes: {
       images: ["image/jpeg", "image/png", "image/gif", "image/webp"],
       videos: ["video/mp4", "video/avi", "video/mov", "video/wmv"],
@@ -39,6 +40,18 @@ const config = {
         "text/plain",
       ],
       audio: ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4"],
+    },
+  },
+  ai: {
+    openrouter: {
+      apiKey: process.env.OPENROUTER_API_KEY || "",
+      endpoint:
+        process.env.OPENROUTER_ENDPOINT ||
+        "https://openrouter.ai/api/v1/chat/completions",
+      model: process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet",
+      timeout: parseInt(process.env.OPENROUTER_TIMEOUT) || 30000,
+      maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS) || 4000,
+      temperature: parseFloat(process.env.OPENROUTER_TEMPERATURE) || 0.7,
     },
   },
 };

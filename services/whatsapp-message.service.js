@@ -1,4 +1,5 @@
 import logger from "../config/logger.js";
+import config from "../config/config.js";
 import {
   sendHumanLikeMessage,
   simulateReadMessage,
@@ -69,6 +70,25 @@ const extractSenderInfo = (messageKey, message) => {
 const processIncomingMessage = async (sock, message) => {
   try {
     if (!message.key.fromMe && message.message) {
+      // Check message age - ignore messages older than configured threshold
+      const messageTimestamp = message.messageTimestamp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      const messageAge = currentTime - messageTimestamp;
+      const thresholdMs = config.whatsapp.messageAgeThreshold * 1000; // Convert seconds to milliseconds
+
+      if (messageAge > thresholdMs) {
+        logger.debug(
+          `⏰ Ignoring old message (${Math.round(messageAge / 1000)}s old)`,
+          {
+            messageId: message.key.id,
+            messageAge: `${Math.round(messageAge / 1000)}s`,
+            threshold: `${config.whatsapp.messageAgeThreshold}s`,
+            sender: message.key.remoteJid?.split("@")[0],
+          }
+        );
+        return null; // Skip processing old messages
+      }
+
       // Extract sender information (including name)
       const { senderJid, isGroup, senderPhone, senderName } = extractSenderInfo(
         message.key,

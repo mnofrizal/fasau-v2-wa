@@ -101,10 +101,20 @@ const processTriggers = async (
 
       // Call the appropriate handler function
       if (triggerHandlerList[matchingTrigger.handler]) {
-        responseText = triggerHandlerList[matchingTrigger.handler](
+        // Check if handler is async (for .a1 report with image processing)
+        const handlerResult = triggerHandlerList[matchingTrigger.handler](
           messageText,
-          senderInfo
+          senderInfo,
+          originalMessage,
+          sock
         );
+
+        // Handle both sync and async handlers
+        if (handlerResult instanceof Promise) {
+          responseText = await handlerResult;
+        } else {
+          responseText = handlerResult;
+        }
       } else {
         responseText = "Handler function not found";
       }

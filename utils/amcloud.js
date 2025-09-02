@@ -9,7 +9,8 @@ import config from "../config/config.js";
  * @param {Object} metadata - File metadata
  * @param {string} metadata.filename - Original filename
  * @param {string} metadata.mimetype - MIME type of the file
- * @param {string} [metadata.caption] - Optional caption
+ * @param {string} [metadata.caption] - Optional caption (deprecated, use description)
+ * @param {string} [metadata.description] - Optional description for the file
  * @param {number} [metadata.fileLength] - Original file size
  * @returns {Promise<Object>} Upload result with publicUrl
  */
@@ -19,6 +20,7 @@ const uploadMedia = async (buffer, metadata) => {
       filename: metadata.filename,
       mimetype: metadata.mimetype,
       size: buffer.length,
+      description: metadata.description || "No description",
     });
 
     // Create form data
@@ -28,11 +30,16 @@ const uploadMedia = async (buffer, metadata) => {
       contentType: metadata.mimetype,
     });
 
+    // Add description if provided
+    if (metadata.description) {
+      formData.append("description", metadata.description);
+    }
+
     // Upload to AMCloud API
     const response = await axios.post(config.upload.endpoint, formData, {
       headers: {
         ...formData.getHeaders(),
-        "X-API-Key": config.upload.apiKey,
+        Authorization: `Bearer ${config.upload.apiKey}`,
       },
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
@@ -129,4 +136,4 @@ const uploadVideo = async (buffer, metadata) => {
   return await uploadMedia(buffer, metadata);
 };
 
-export { uploadMedia, uploadImage, uploadVideo, uploadDocument, uploadAudio };
+export { uploadMedia, uploadImage, uploadVideo };
