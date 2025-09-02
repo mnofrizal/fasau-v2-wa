@@ -4,6 +4,10 @@
   "description": "Simple WhatsApp API using Express and Baileys",
   "main": "app.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "start": "node app.js",
     "dev": "node app.js",
