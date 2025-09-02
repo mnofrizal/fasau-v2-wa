@@ -3,7 +3,7 @@ const triggerConfigList = {
   globalEnabled: true, // Default enabled
   triggers: [
     {
-      prefix: ".a1",
+      prefix: ".l1",
       type: "function", // Special function-based trigger
       handler: "handleA1Report",
       enabled: true,
