@@ -115,10 +115,14 @@ const handleA1Report = async (
     task: {
       title: reportContent,
       category: "CM", // Default category as per example
-      evidence: imageUrl || null,
     },
     waMessageId: originalMessageKey?.id || `msg_${Date.now()}`,
   };
+
+  // Only add evidence field if there's an actual image URL
+  if (imageUrl) {
+    webhookPayload.task.evidence = imageUrl;
+  }
 
   // Send webhook data before responding
   try {
