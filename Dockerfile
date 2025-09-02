@@ -17,10 +17,10 @@ RUN npm ci --only=production
 COPY . .
 
 # Create directory for sessions (if needed by Baileys)
-RUN mkdir -p sessions
+RUN mkdir -p auth_info_baileys
 
 # Expose port (adjust if your app uses different port)
-EXPOSE 3000
+EXPOSE 4620
 
 # Start the application
 CMD ["npm", "start"]
