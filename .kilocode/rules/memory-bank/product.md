@@ -37,6 +37,9 @@ A simple yet powerful WhatsApp API endpoint built with Express.js and Baileys li
 
 ### Advanced Features
 
+- **AI Integration**: Multiple AI functions using OpenRouter API for intelligent responses and analysis
+- **Image Upload Support**: AMCloud integration for automatic image processing and storage
+- **Message Age Filtering**: Configurable threshold to prevent processing old messages on restart
 - **Trigger System**: Automatic responses to specific prefixes with quoted replies
 - Beautiful Winston logging system
 - Centralized response handlers
@@ -55,6 +58,23 @@ A simple yet powerful WhatsApp API endpoint built with Express.js and Baileys li
 - **Default Enabled**: Triggers active by default when server starts
 - **Global Control**: Simple API to enable/disable all triggers
 - **Human-like Behavior**: Realistic typing delays and timing for auto-responses
+- **Image Processing**: Automatic image detection, download, and upload to AMCloud
+- **AI-Powered Responses**: Integration with OpenRouter for intelligent message processing
+
+### AI Integration
+
+- **Multiple AI Functions**: generateResponse, generateJSON, analyzeText, and more
+- **OpenRouter API**: Access to various AI models for different use cases
+- **Error Handling**: Robust error management for AI API calls
+- **Configurable Models**: Environment-based model selection
+- **Testing Infrastructure**: Comprehensive testing scripts and documentation
+
+### Media Processing
+
+- **Image Upload**: Automatic upload to AMCloud with description metadata
+- **Smart Detection**: Automatic identification of image messages
+- **Error Recovery**: Graceful handling of upload failures
+- **Metadata Support**: Description field integration for contextual information
 
 ## User Experience Goals
 

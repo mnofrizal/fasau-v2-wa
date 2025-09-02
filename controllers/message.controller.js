@@ -1,5 +1,6 @@
 import {
   sendMessage,
+  sendReaction,
   getConnectionStatus,
   getReceivedMessages,
   clearReceivedMessages,
@@ -40,6 +41,46 @@ const sendTextMessage = asyncHandler(async (req, res) => {
       "Failed to send message",
       500,
       "sendTextMessage"
+    );
+  }
+});
+
+const sendMessageReaction = asyncHandler(async (req, res) => {
+  const { messageKey, emoji } = req.body;
+
+  // Validate required fields
+  if (!messageKey || !emoji) {
+    return sendValidationError(
+      res,
+      "Missing required fields: messageKey and emoji"
+    );
+  }
+
+  // Validate messageKey structure
+  if (!messageKey.id || !messageKey.remoteJid) {
+    return sendValidationError(
+      res,
+      "Invalid messageKey: must contain id and remoteJid"
+    );
+  }
+
+  // Check if WhatsApp is connected
+  const status = getConnectionStatus();
+  if (!status.isConnected) {
+    return sendConnectionError(res, status.hasQR);
+  }
+
+  try {
+    // Send reaction
+    const result = await sendReaction(messageKey, emoji);
+    return sendSuccess(res, result, "Reaction sent successfully");
+  } catch (error) {
+    return sendError(
+      res,
+      error,
+      "Failed to send reaction",
+      500,
+      "sendMessageReaction"
     );
   }
 });
@@ -122,6 +163,7 @@ const getGroups = asyncHandler(async (req, res) => {
 
 export {
   sendTextMessage,
+  sendMessageReaction,
   getMessages,
   clearMessages,
   getStatus,

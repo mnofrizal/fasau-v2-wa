@@ -1,6 +1,7 @@
 import express from "express";
 import {
   sendTextMessage,
+  sendMessageReaction,
   getMessages,
   clearMessages,
   getStatus,
@@ -12,6 +13,9 @@ const router = express.Router();
 
 // Send text message
 router.post("/send", sendTextMessage);
+
+// Send reaction to a message
+router.post("/reaction", sendMessageReaction);
 
 // Get received messages
 router.get("/received", getMessages);

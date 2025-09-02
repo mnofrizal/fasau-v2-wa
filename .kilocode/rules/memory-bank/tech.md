@@ -26,6 +26,8 @@
 - **qrcode-terminal 0.12.0**: QR code display in terminal
 - **dotenv 16.3.1**: Environment variable management
 - **cors 2.8.5**: Cross-origin resource sharing
+- **axios 1.6.2**: HTTP client for API calls (AI and media upload)
+- **form-data 4.0.0**: Multipart form data handling for media uploads
 
 ## Development Setup
 
@@ -49,6 +51,18 @@ PORT=3001
 NODE_ENV=development
 SESSION_PATH=./auth_info_baileys
 API_PREFIX=/api
+
+# OpenRouter AI Configuration
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=gpt-3.5-turbo
+
+# WhatsApp Configuration
+MESSAGE_AGE_THRESHOLD=60
+
+# AMCloud Configuration
+AMCLOUD_API_URL=https://api.amcloud.com/upload
+AMCLOUD_API_KEY=your_amcloud_api_key
 ```
 
 ### Running the Application
@@ -91,7 +105,9 @@ npm start
   "qrcode-terminal": "^0.12.0", // QR code display
   "dotenv": "^16.3.1", // Environment variables
   "cors": "^2.8.5", // CORS middleware
-  "winston": "^3.11.0" // Logging system
+  "winston": "^3.11.0", // Logging system
+  "axios": "^1.6.2", // HTTP client for AI and media APIs
+  "form-data": "^4.0.0" // Multipart form data for media uploads
 }
 ```
 
@@ -101,6 +117,8 @@ npm start
 - **Express**: REST API endpoints, middleware, routing
 - **Winston**: Structured logging, file output, log levels
 - **QR Terminal**: Authentication QR code display
+- **Axios**: HTTP client for OpenRouter AI API and AMCloud media uploads
+- **Form-Data**: Multipart form data handling for image uploads
 
 ## Tool Usage Patterns
 

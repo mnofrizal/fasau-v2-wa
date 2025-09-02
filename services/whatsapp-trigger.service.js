@@ -106,7 +106,8 @@ const processTriggers = async (
           messageText,
           senderInfo,
           originalMessage,
-          sock
+          sock,
+          originalMessageKey
         );
 
         // Handle both sync and async handlers

@@ -17,6 +17,7 @@ import {
 import {
   handleMessagesUpsert,
   sendMessage as sendMessageService,
+  sendReaction as sendReactionService,
   getReceivedMessages,
   clearReceivedMessages,
   getMessageStats,
@@ -162,6 +163,21 @@ const sendMessage = async (to, message) => {
   }
 };
 
+// Send reaction wrapper
+const sendReaction = async (messageKey, emoji) => {
+  try {
+    const sock = getSocket();
+    if (!sock) {
+      throw new Error("WhatsApp is not connected");
+    }
+
+    return await sendReactionService(sock, messageKey, emoji);
+  } catch (error) {
+    logger.error("❌ Error in sendReaction:", error);
+    throw error;
+  }
+};
+
 // Get group list wrapper
 const getGroups = async () => {
   try {
@@ -251,6 +267,7 @@ export {
 
   // Message functions
   sendMessage,
+  sendReaction,
   getReceivedMessages,
   clearReceivedMessages,
   getMessageStats,

@@ -1,6 +1,7 @@
 import logger from "../config/logger.js";
 import { downloadMediaMessage } from "@whiskeysockets/baileys";
 import { uploadImage } from "./amcloud.js";
+import { sendReaction } from "../services/whatsapp-message.service.js";
 
 // Helper function to format timestamp in Indonesian locale
 const formatTimestamp = () => {
@@ -81,7 +82,8 @@ const handleA1Report = async (
   messageText,
   senderInfo,
   originalMessage,
-  sock
+  sock,
+  originalMessageKey
 ) => {
   // Remove the .a1 prefix and trim
   const reportContent = messageText.replace(/^\.a1\s*/, "").trim();
@@ -115,6 +117,18 @@ Tipe: ${formatMediaType(messageType)}
 Pesan: ${reportContent}
 
 Status: ✅ Laporan telah diterima dan akan diproses`;
+
+  // Send thumbs up reaction to the original message
+  try {
+    if (originalMessageKey && sock) {
+      logger.info("👍 Sending thumbs up reaction to .a1 report message");
+      await sendReaction(sock, originalMessageKey, "👍");
+      logger.info("✅ Thumbs up reaction sent successfully");
+    }
+  } catch (reactionError) {
+    logger.warn("⚠️ Failed to send thumbs up reaction:", reactionError.message);
+    // Don't throw error, continue with normal response
+  }
 
   return response;
 };

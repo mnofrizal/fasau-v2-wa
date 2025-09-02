@@ -156,3 +156,71 @@ Content-Type: application/json
   "to": "6287733760363",
   "message": ".a1 this should not trigger auto-response"
 }
+
+### 22. Send Reaction to Message
+### Note: You need to get the messageKey from a received message first
+### Use the "Get Received Messages" endpoint to get the messageKey structure
+POST http://localhost:3001/api/message/reaction
+Content-Type: application/json
+
+{
+  "messageKey": {
+    "id": "MESSAGE_ID_HERE",
+    "remoteJid": "6287733760363@s.whatsapp.net",
+    "fromMe": false
+  },
+  "emoji": "👍"
+}
+
+### 23. Send Different Reactions
+POST http://localhost:3001/api/message/reaction
+Content-Type: application/json
+
+{
+  "messageKey": {
+    "id": "MESSAGE_ID_HERE",
+    "remoteJid": "6287733760363@s.whatsapp.net",
+    "fromMe": false
+  },
+  "emoji": "❤️"
+}
+
+### 24. Test Reaction Error - Missing messageKey
+POST http://localhost:3001/api/message/reaction
+Content-Type: application/json
+
+{
+  "emoji": "😂"
+}
+
+### 25. Test Reaction Error - Invalid messageKey
+POST http://localhost:3001/api/message/reaction
+Content-Type: application/json
+
+{
+  "messageKey": {
+    "id": "invalid_id"
+  },
+  "emoji": "😂"
+}
+
+### 26. Remove Reaction (send empty emoji)
+POST http://localhost:3001/api/message/reaction
+Content-Type: application/json
+
+{
+  "messageKey": {
+    "id": "MESSAGE_ID_HERE",
+    "remoteJid": "6287733760363@s.whatsapp.net",
+    "fromMe": false
+  },
+  "emoji": ""
+}
+
+### Notes for Reaction Testing:
+### - Replace MESSAGE_ID_HERE with actual message ID from received messages
+### - Get messageKey structure from GET /api/message/received endpoint
+### - messageKey must contain: id, remoteJid, and optionally fromMe
+### - Popular emojis: 👍 👎 ❤️ 😂 😮 😢 😡 🔥 💯 ✅ ❌
+### - Send empty emoji ("") to remove reaction
+### - Make sure WhatsApp is connected before sending reactions

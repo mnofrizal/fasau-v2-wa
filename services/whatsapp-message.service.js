@@ -252,6 +252,42 @@ const sendMessage = async (sock, to, message) => {
   }
 };
 
+// Send reaction to a message
+const sendReaction = async (sock, messageKey, emoji) => {
+  try {
+    if (!sock) {
+      throw new Error("WhatsApp socket is not available");
+    }
+
+    // Validate emoji (optional - you can add more validation)
+    if (!emoji || typeof emoji !== "string") {
+      throw new Error("Valid emoji is required");
+    }
+
+    logger.info(`👍 Sending reaction "${emoji}" to message: ${messageKey.id}`);
+
+    // Send reaction using Baileys
+    const result = await sock.sendMessage(messageKey.remoteJid, {
+      react: {
+        text: emoji,
+        key: messageKey,
+      },
+    });
+
+    logger.info(`✅ Reaction sent successfully: ${emoji}`);
+    return {
+      success: true,
+      messageId: result.key.id,
+      reaction: emoji,
+      targetMessage: messageKey.id,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    logger.error("❌ Error sending reaction:", error);
+    throw error;
+  }
+};
+
 // Get received messages
 const getReceivedMessages = (limit = 50) => {
   return receivedMessages.slice(-limit).reverse();
@@ -344,6 +380,7 @@ const searchMessages = (query, options = {}) => {
 export {
   handleMessagesUpsert,
   sendMessage,
+  sendReaction,
   getReceivedMessages,
   clearReceivedMessages,
   getMessageStats,

@@ -24,7 +24,11 @@ whatsapp-api/
 │   ├── timing.js            # Random delays & timing
 │   ├── humanBehavior.js     # Human-like messaging
 │   ├── responseHandler.js   # Centralized API responses
-│   └── triggerHandlerList.js # Trigger handler functions
+│   ├── triggerHandlerList.js # Trigger handler functions
+│   ├── ai.js                # AI utility functions (OpenRouter)
+│   ├── ai.example.js        # AI usage examples
+│   ├── amcloud.js           # Media upload utilities
+│   └── ai.example.js        # AI usage examples
 ├── rest/                     # API testing
 │   ├── message.rest         # REST client tests
 │   └── trigger.rest         # Trigger API tests
@@ -122,9 +126,33 @@ Incoming Message → processIncomingMessage() → processTriggers()
                                 ↓
                         Message Processing (.a1: extract content, sender info)
                                 ↓
-                        Format Response (timestamp, reporter details)
+                        Image Detection → downloadMediaMessage() → AMCloud Upload
+                                ↓
+                        AI Processing (optional) → OpenRouter API
+                                ↓
+                        Format Response (timestamp, reporter details, image URL)
                                 ↓
                         Human Behavior → Quoted Reply → WhatsApp
+```
+
+### 5. **AI Integration Flow**
+
+```
+AI Request → ai.js → OpenRouter API
+                        ↓
+                Model Selection → API Call → Response Processing
+                        ↓
+                Error Handling → Structured Response → Application
+```
+
+### 6. **Media Processing Flow**
+
+```
+Image Message → detectImageMessage() → downloadMediaMessage()
+                                ↓
+                        Buffer Processing → AMCloud API → Upload with Description
+                                ↓
+                        URL Generation → Response Integration → WhatsApp Reply
 ```
 
 ## Design Patterns
