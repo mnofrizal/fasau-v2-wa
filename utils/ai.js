@@ -17,6 +17,8 @@ const callOpenRouter = async (messages, options = {}) => {
       timeout = config.ai.openrouter.timeout,
     } = options;
 
+    console.log({ model });
+
     if (!config.ai.openrouter.apiKey) {
       throw new Error("OpenRouter API key is not configured");
     }
@@ -123,6 +125,8 @@ const generateJSON = async (prompt, schema = null, options = {}) => {
   ];
 
   const response = await callOpenRouter(messages, options);
+
+  console.log({ response });
 
   try {
     // Try to parse the JSON response

@@ -17,12 +17,29 @@ const getAuthState = async () => {
   }
 };
 
-const resetSession = async () => {
+const resetSession = async (socket = null) => {
   try {
     const sessionPath = config.whatsapp.sessionPath;
     logger.warn(
       "🔄 Resetting WhatsApp session due to persistent connection issues..."
     );
+
+    // If socket is provided, logout first
+    if (socket) {
+      try {
+        logger.info("🚪 Logging out from WhatsApp...");
+        await socket.logout();
+        logger.info("✅ Successfully logged out from WhatsApp");
+
+        // Wait longer for logout to complete and WhatsApp servers to process
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      } catch (logoutError) {
+        logger.warn(
+          "⚠️ Logout failed, proceeding with session reset:",
+          logoutError.message
+        );
+      }
+    }
 
     if (fs.existsSync(sessionPath)) {
       // Remove all session files

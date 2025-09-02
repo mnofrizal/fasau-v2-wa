@@ -35,20 +35,20 @@ Content-Type: application/json
 ### Send these messages to your WhatsApp bot to test:
 ###
 ### A. Enhanced .a1 trigger (report function) - TEXT MESSAGES:
-### - ".a1 laporan ada kerusakan plafond" → Should respond with formatted report
-### - ".a1 ada masalah di kantor" → Should respond with formatted report
-### - ".a1 kerusakan AC ruang meeting" → Should respond with formatted report
+### - ".a1 laporan ada kerusakan plafond" → Should respond with formatted report + send webhook
+### - ".a1 ada masalah di kantor" → Should respond with formatted report + send webhook
+### - ".a1 kerusakan AC ruang meeting" → Should respond with formatted report + send webhook
 ### - ".a1" → Should respond with usage instructions
 ###
 ### B. Enhanced .a1 trigger (report function) - MEDIA MESSAGES:
-### - Send an IMAGE with caption ".a1 foto kerusakan plafond" → Should respond with formatted report including "Tipe: Gambar"
-### - Send a VIDEO with caption ".a1 video masalah AC" → Should respond with formatted report including "Tipe: Video"
-### - Send a DOCUMENT with caption ".a1 laporan lengkap kerusakan" → Should respond with formatted report including "Tipe: Dokumen"
+### - Send an IMAGE with caption ".a1 foto kerusakan plafond" → Should respond with formatted report including "Tipe: Gambar" + send webhook with image URL
+### - Send a VIDEO with caption ".a1 video masalah AC" → Should respond with formatted report including "Tipe: Video" + send webhook
+### - Send a DOCUMENT with caption ".a1 laporan lengkap kerusakan" → Should respond with formatted report including "Tipe: Dokumen" + send webhook
 ### - Send media without caption or with empty caption → Should be ignored (no trigger response)
 ###
 ### C. Simple triggers:
-### - ".help" → Should respond with available commands (enhanced format)
-### - ".ping" → Should respond with "Pong! 🏓"
+### - ".help" → Should respond with available commands (reply: true)
+### - ".ping" → Should NOT respond (reply: false) - Silent processing only
 
 ### Note: Triggers are now hardcoded and cannot be modified via API
 ### Available hardcoded triggers:
@@ -79,7 +79,41 @@ Content-Type: application/json
 ### USAGE HELP:
 ### Input: ".a1"
 ### Output: "Format: .a1 <pesan laporan>\nContoh: .a1 laporan ada kerusakan plafond"
-### 
+###
+### NEW FEATURES:
+###
+### 1. REPLY PARAMETER:
+### Each trigger now has a "reply" parameter (true/false):
+### - .a1: reply: true → Will send WhatsApp reply message
+### - .help: reply: true → Will send WhatsApp reply message
+### - .ping: reply: false → Will process silently (no reply sent)
+###
+### 2. WEBHOOK INTEGRATION:
+### .a1 trigger now sends webhook data to configured endpoint before replying:
+### - Endpoint: http://localhost:4600/api/webhook/whatsapp (configurable via WEBHOOK_ENDPOINT)
+### - Method: POST
+### - Payload format:
+### {
+###   "waUser": {
+###     "name": "User Display Name",
+###     "phone": "087733760363"
+###   },
+###   "task": {
+###     "title": "Report content without .a1 prefix",
+###     "category": "CM"
+###   },
+###   "evidence": "https://image-url-if-available.jpg",
+###   "waMessageId": "whatsapp-message-id"
+### }
+###
+### 3. WEBHOOK CONFIGURATION:
+### Environment variables for webhook:
+### - WEBHOOK_ENDPOINT: Target webhook URL
+### - WEBHOOK_TIMEOUT: Request timeout (default: 10000ms)
+### - WEBHOOK_RETRIES: Retry attempts (default: 3)
+### - WEBHOOK_ENABLED: Enable/disable webhook (default: true)
+###
 ### Triggers are enabled by default when server starts
 ### Only global enable/disable functionality is available via API
 ### Function-based triggers (.a1) process message content dynamically
+### Webhook failures do not prevent normal trigger responses

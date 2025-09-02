@@ -5,6 +5,7 @@ import {
   getSocket,
   resetConnectionState,
   registerEventHandler,
+  clearEventHandlers,
 } from "./whatsapp-connection.service.js";
 import {
   getAuthState,
@@ -54,6 +55,9 @@ const initializeWhatsApp = async () => {
 
 // Setup event handlers for all services
 const setupEventHandlers = () => {
+  // Clear existing event handlers to prevent duplicates
+  clearEventHandlers();
+
   // Handle connection updates
   registerEventHandler("onConnectionUpdate", async (update) => {
     if (update.shouldResetSession) {
@@ -99,6 +103,15 @@ const setupEventHandlers = () => {
 // Connect to WhatsApp
 const connectToWhatsApp = async () => {
   try {
+    // Check if already connected or connecting
+    const status = getConnectionStatus();
+    if (status.isConnected || status.isConnecting) {
+      logger.warn(
+        "⚠️ WhatsApp is already connected or connecting, skipping connection attempt"
+      );
+      return;
+    }
+
     logger.info("🔄 Initializing WhatsApp connection...");
 
     // Get authentication state
@@ -128,11 +141,14 @@ const handleSessionReset = async () => {
   try {
     logger.warn("🔄 Handling session reset...");
 
+    // Get current socket for logout
+    const currentSocket = getSocket();
+
     // Reset connection state
     resetConnectionState();
 
-    // Reset session files
-    await resetSession();
+    // Reset session files with logout
+    await resetSession(currentSocket);
 
     // Wait a moment before reconnecting
     setTimeout(() => {

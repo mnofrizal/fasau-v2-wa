@@ -10,6 +10,7 @@ import logger from "../config/logger.js";
 // Connection state
 let sock = null;
 let isConnected = false;
+let isConnecting = false;
 let qrCodeData = null;
 let reconnectAttempts = 0;
 let maxReconnectAttempts = 6; // 6 attempts * 20 seconds = 2 minutes
@@ -33,6 +34,14 @@ const registerEventHandler = (event, handler) => {
   }
 };
 
+// Clear all event handlers
+const clearEventHandlers = () => {
+  Object.keys(eventHandlers).forEach((event) => {
+    eventHandlers[event] = [];
+  });
+  logger.debug("🧹 Cleared all event handlers");
+};
+
 // Emit event to all registered handlers
 const emitEvent = (event, data) => {
   if (eventHandlers[event]) {
@@ -43,6 +52,26 @@ const emitEvent = (event, data) => {
 // Create WhatsApp socket with configuration
 const createSocket = async (authState) => {
   try {
+    // Prevent multiple simultaneous connections
+    if (isConnecting) {
+      logger.warn("⚠️ Connection already in progress, skipping...");
+      return sock;
+    }
+
+    isConnecting = true;
+
+    // Clean up existing socket if it exists
+    if (sock) {
+      try {
+        logger.debug("🧹 Cleaning up existing socket...");
+        sock.ev.removeAllListeners();
+        sock.end();
+      } catch (cleanupError) {
+        logger.warn("⚠️ Error cleaning up old socket:", cleanupError.message);
+      }
+      sock = null;
+    }
+
     // Get latest Baileys version
     const { version, isLatest } = await fetchLatestBaileysVersion();
     logger.info(
@@ -103,6 +132,7 @@ const createSocket = async (authState) => {
     return sock;
   } catch (error) {
     logger.error("❌ Error creating WhatsApp socket:", error);
+    isConnecting = false;
     throw error;
   }
 };
@@ -169,8 +199,10 @@ const handleConnectionUpdate = (update) => {
   if (connection === "connecting") {
     logger.info("🔗 Connecting to WhatsApp...");
   } else if (connection === "close") {
+    isConnecting = false;
     handleConnectionClose(lastDisconnect);
   } else if (connection === "open") {
+    isConnecting = false;
     handleConnectionOpen();
   }
 
@@ -294,6 +326,7 @@ const handleConnectionOpen = () => {
 const getConnectionStatus = () => {
   return {
     isConnected,
+    isConnecting,
     hasQR: !!qrCodeData,
     qrCode: qrCodeData,
   };
@@ -305,11 +338,27 @@ const getSocket = () => sock;
 // Reset connection state
 const resetConnectionState = () => {
   isConnected = false;
+  isConnecting = false;
   qrCodeData = null;
   reconnectAttempts = 0;
   if (reconnectTimeout) {
     clearTimeout(reconnectTimeout);
     reconnectTimeout = null;
+  }
+
+  // Clean up socket if it exists
+  if (sock) {
+    try {
+      logger.debug("🧹 Cleaning up socket in resetConnectionState...");
+      sock.ev.removeAllListeners();
+      sock.end();
+    } catch (cleanupError) {
+      logger.warn(
+        "⚠️ Error cleaning up socket in reset:",
+        cleanupError.message
+      );
+    }
+    sock = null;
   }
 };
 
@@ -319,5 +368,6 @@ export {
   getSocket,
   resetConnectionState,
   registerEventHandler,
+  clearEventHandlers,
   emitEvent,
 };

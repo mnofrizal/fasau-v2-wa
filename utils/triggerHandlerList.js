@@ -2,6 +2,7 @@ import logger from "../config/logger.js";
 import { downloadMediaMessage } from "@whiskeysockets/baileys";
 import { uploadImage } from "./amcloud.js";
 import { sendReaction } from "../services/whatsapp-message.service.js";
+import { sendWebhookWithRetry } from "./webhook.js";
 
 // Helper function to format timestamp in Indonesian locale
 const formatTimestamp = () => {
@@ -103,6 +104,41 @@ const handleA1Report = async (
   let imageUrl = null;
   if (messageType === "image" && originalMessage && sock) {
     imageUrl = await processImageUpload(originalMessage, reportContent);
+  }
+
+  // Prepare webhook payload
+  const webhookPayload = {
+    waUser: {
+      name: senderInfo.name || "Unknown User",
+      phone: senderInfo.phoneNumber || "Unknown Phone",
+    },
+    task: {
+      title: reportContent,
+      category: "CM", // Default category as per example
+      evidence: imageUrl || null,
+    },
+    waMessageId: originalMessageKey?.id || `msg_${Date.now()}`,
+  };
+
+  // Send webhook data before responding
+  try {
+    logger.info("📤 Sending webhook data for .a1 report...");
+    const webhookResult = await sendWebhookWithRetry(webhookPayload);
+    console.log({ webhookPayload });
+    if (webhookResult.success) {
+      logger.info("✅ Webhook sent successfully for .a1 report");
+    } else {
+      logger.warn(
+        "⚠️ Webhook failed for .a1 report:",
+        webhookResult.error || webhookResult.reason
+      );
+    }
+  } catch (webhookError) {
+    logger.error(
+      "❌ Error sending webhook for .a1 report:",
+      webhookError.message
+    );
+    // Continue with normal response even if webhook fails
   }
 
   // Create formatted report response

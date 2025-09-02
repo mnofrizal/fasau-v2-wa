@@ -124,19 +124,29 @@ const processTriggers = async (
       responseText = matchingTrigger.response;
     }
 
-    // Send reply to the original message
-    const response = await sendReplyMessage(
-      sock,
-      originalMessageKey,
-      responseText,
-      originalMessage
-    );
+    let response = null;
 
-    logger.info(
-      `🤖 Auto-reply sent: "${responseText.substring(0, 50)}..." to ${
-        messageData.senderPhone
-      }`
-    );
+    // Check if reply is enabled for this trigger
+    if (matchingTrigger.reply !== false) {
+      // Default to true if not specified
+      // Send reply to the original message
+      response = await sendReplyMessage(
+        sock,
+        originalMessageKey,
+        responseText,
+        originalMessage
+      );
+
+      logger.info(
+        `🤖 Auto-reply sent: "${responseText.substring(0, 50)}..." to ${
+          messageData.senderPhone
+        }`
+      );
+    } else {
+      logger.info(
+        `🔇 Trigger processed silently (reply disabled): ${matchingTrigger.prefix} from ${messageData.senderPhone}`
+      );
+    }
 
     return {
       triggered: true,

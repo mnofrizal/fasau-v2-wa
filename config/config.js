@@ -15,6 +15,14 @@ const config = {
     syncFullHistory: false,
     messageAgeThreshold: parseInt(process.env.MESSAGE_AGE_THRESHOLD) || 60, // seconds
   },
+  webhook: {
+    endpoint:
+      process.env.WEBHOOK_ENDPOINT ||
+      "http://localhost:4600/api/webhook/whatsapp",
+    timeout: parseInt(process.env.WEBHOOK_TIMEOUT) || 10000, // 10 seconds
+    retries: parseInt(process.env.WEBHOOK_RETRIES) || 3,
+    enabled: process.env.WEBHOOK_ENABLED !== "false", // Default enabled
+  },
   api: {
     cors: {
       origin: "*",

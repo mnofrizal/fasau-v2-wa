@@ -170,9 +170,9 @@ const processIncomingMessage = async (sock, message) => {
         // Don't throw error, continue with normal message processing
       }
 
-      // Keep only last 100 messages to prevent memory issues
-      if (receivedMessages.length > 100) {
-        receivedMessages = receivedMessages.slice(-100);
+      // Keep only last 10 messages to prevent memory issues
+      if (receivedMessages.length > 10) {
+        receivedMessages = receivedMessages.slice(-10);
       }
 
       return messageData;

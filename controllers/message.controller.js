@@ -6,7 +6,9 @@ import {
   clearReceivedMessages,
   resetSession,
   getGroupList,
+  restartService,
 } from "../services/whatsapp.service.js";
+import { getSocket } from "../services/whatsapp-connection.service.js";
 import logger from "../config/logger.js";
 import {
   sendSuccess,
@@ -128,11 +130,20 @@ const getStatus = asyncHandler(async (req, res) => {
 const resetWhatsAppSession = asyncHandler(async (req, res) => {
   try {
     logger.info("🔄 Manual session reset requested");
-    await resetSession();
+
+    // Get current socket for logout
+    const currentSocket = getSocket();
+
+    // First reset the session files with proper logout
+    await resetSession(currentSocket);
+
+    // Then restart the service to trigger reconnection and QR code generation
+    await restartService();
+
     return sendSuccess(
       res,
       null,
-      "WhatsApp session reset initiated. Please wait for reconnection."
+      "WhatsApp session reset initiated. Please wait for reconnection and QR code generation."
     );
   } catch (error) {
     return sendError(
