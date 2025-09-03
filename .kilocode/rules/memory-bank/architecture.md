@@ -117,14 +117,22 @@ Message Request → getHumanTimings() → Random Delays
                 sendOnlinePresence() → sendSeen() → sendTyping() → sendMessage()
 ```
 
-### 4. **Trigger System Flow**
+### 4. **Enhanced Message Processing Flow**
 
 ```
-Incoming Message → processIncomingMessage() → processTriggers()
+Incoming Message Batch → handleMessagesUpsert() → Batch Processing Logs
                                 ↓
-                        Trigger Match Found → triggerHandlerList.js
+                        For Each Message → processIncomingMessage()
                                 ↓
-                        Message Processing (.a1: extract content, sender info)
+                        Message Age Check → Old Message (>60s) → Mark as Read → Skip Triggers
+                                ↓                                    ↓
+                        Recent Message (≤60s)                    Return null
+                                ↓
+                        Extract Sender Info → Group: participantPn | Personal: remoteJid
+                                ↓
+                        processTriggers() → Trigger Match Found
+                                ↓
+                        triggerHandlerList.js → Message Processing (.a1: extract content, sender info)
                                 ↓
                         Image Detection → downloadMediaMessage() → AMCloud Upload
                                 ↓
@@ -135,7 +143,33 @@ Incoming Message → processIncomingMessage() → processTriggers()
                         Human Behavior → Quoted Reply → WhatsApp
 ```
 
-### 5. **AI Integration Flow**
+### 5. **Message Age Filtering Flow**
+
+```
+Message Received → Check messageTimestamp vs currentTime
+                                ↓
+                        Age > 60s → Log "OLD MESSAGE" → simulateReadMessage() → Return null
+                                ↓                                    ↓
+                        Age ≤ 60s                                Skip Triggers & Storage
+                                ↓
+                        Log "PROCESSING RECENT MESSAGE" → Continue Normal Processing
+```
+
+### 6. **Group Sender Extraction Flow**
+
+```
+Group Message → Check messageKey.participantPn (Priority 1)
+                                ↓
+                        Available → Extract Phone Number → Validate Format
+                                ↓                                    ↓
+                        Not Available                            Valid Phone (62xxx)
+                                ↓                                    ↓
+                        Fallback to messageKey.participant → Use in Webhook Payload
+                                ↓
+                        Extract & Log Warning → Continue Processing
+```
+
+### 7. **AI Integration Flow**
 
 ```
 AI Request → ai.js → OpenRouter API
@@ -145,7 +179,7 @@ AI Request → ai.js → OpenRouter API
                 Error Handling → Structured Response → Application
 ```
 
-### 6. **Media Processing Flow**
+### 8. **Media Processing Flow**
 
 ```
 Image Message → detectImageMessage() → downloadMediaMessage()
@@ -153,6 +187,36 @@ Image Message → detectImageMessage() → downloadMediaMessage()
                         Buffer Processing → AMCloud API → Upload with Description
                                 ↓
                         URL Generation → Response Integration → WhatsApp Reply
+```
+
+### 9. **Batch Message Processing Flow**
+
+```
+handleMessagesUpsert() → Log Batch Info → For Each Message
+                                ↓
+                        processIncomingMessage() → Age Check → Read Simulation
+                                ↓                        ↓
+                        Recent Message Processing    Old Message Skip
+                                ↓                        ↓
+                        Trigger Processing          Log Skip Reason
+                                ↓                        ↓
+                        Response Generation         Return null
+                                ↓
+                        Batch Complete Log
+```
+
+### 10. **Enhanced Debugging Flow**
+
+```
+Message Processing → Comprehensive Logging → Debug Information
+                                ↓
+                        Message Key Structure → Participant Fields
+                                ↓
+                        Sender Extraction Methods → Phone Validation
+                                ↓
+                        Processing Decision → Skip/Process Logs
+                                ↓
+                        Batch Summary → Success/Failure Counts
 ```
 
 ## Design Patterns

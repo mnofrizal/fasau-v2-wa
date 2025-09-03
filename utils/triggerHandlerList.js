@@ -95,7 +95,12 @@ const handleA1Report = async (
   }
 
   // Log sender info for debugging
-  logger.debug("Processing A1 report with sender info:", senderInfo);
+  logger.debug("Processing A1 report with sender info:", {
+    name: senderInfo.name,
+    phoneNumber: senderInfo.phoneNumber,
+    jid: senderInfo.jid,
+    messageType: senderInfo.messageType,
+  });
 
   // Determine message type for display
   const messageType = senderInfo.messageType || "text";

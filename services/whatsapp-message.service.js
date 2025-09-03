@@ -57,13 +57,116 @@ const extractMessageContent = (message) => {
 const extractSenderInfo = (messageKey, message) => {
   const senderJid = messageKey.remoteJid;
   const isGroup = senderJid.includes("@g.us");
-  const senderPhone = senderJid.split("@")[0];
+
+  // Debug logging to see the actual structure
+  logger.debug("🔍 Message Key Structure:", {
+    remoteJid: messageKey.remoteJid,
+    participant: messageKey.participant,
+    participantPn: messageKey.participantPn,
+    fromMe: messageKey.fromMe,
+    id: messageKey.id,
+    isGroup: isGroup,
+    fullMessageKey: messageKey,
+  });
+
+  // Additional debug for message object
+  logger.debug("🔍 Message Object Structure:", {
+    pushName: message?.pushName,
+    verifiedBizName: message?.verifiedBizName,
+    participant: message?.participant,
+    messageContextInfo: message?.messageContextInfo,
+    hasQuotedMessage:
+      !!message?.message?.extendedTextMessage?.contextInfo?.quotedMessage,
+    contextInfo: message?.message?.extendedTextMessage?.contextInfo,
+    conversationMessage: message?.message?.conversation,
+    extendedTextMessage: message?.message?.extendedTextMessage,
+  });
+
+  // For group messages, try multiple approaches to get the actual sender
+  let senderPhone;
+  let actualSenderJid;
+
+  if (isGroup) {
+    // Try different approaches to get the actual sender in group messages
+    if (messageKey.participantPn) {
+      // Method 1: From messageKey.participantPn (the correct field for phone numbers!)
+      actualSenderJid = messageKey.participantPn;
+      senderPhone = messageKey.participantPn.split("@")[0];
+      logger.debug("📱 Group message - Method 1 (messageKey.participantPn):", {
+        participantPn: messageKey.participantPn,
+        extractedPhone: senderPhone,
+      });
+    } else if (messageKey.participant) {
+      // Method 2: From messageKey.participant (fallback, might not be phone number)
+      actualSenderJid = messageKey.participant;
+      senderPhone = messageKey.participant.split("@")[0];
+      logger.debug("📱 Group message - Method 2 (messageKey.participant):", {
+        participant: messageKey.participant,
+        extractedPhone: senderPhone,
+      });
+    } else if (message?.participant) {
+      // Method 3: From message.participant
+      actualSenderJid = message.participant;
+      senderPhone = message.participant.split("@")[0];
+      logger.debug("📱 Group message - Method 3 (message.participant):", {
+        participant: message.participant,
+        extractedPhone: senderPhone,
+      });
+    } else if (
+      message?.message?.extendedTextMessage?.contextInfo?.participant
+    ) {
+      // Method 4: From contextInfo.participant
+      actualSenderJid =
+        message.message.extendedTextMessage.contextInfo.participant;
+      senderPhone = actualSenderJid.split("@")[0];
+      logger.debug("📱 Group message - Method 4 (contextInfo.participant):", {
+        participant: actualSenderJid,
+        extractedPhone: senderPhone,
+      });
+    } else {
+      // Fallback: Use group ID (this is wrong but helps identify the issue)
+      actualSenderJid = senderJid;
+      senderPhone = senderJid.split("@")[0];
+      logger.warn(
+        "⚠️ Group message - No participant found, using group ID as fallback:",
+        {
+          remoteJid: messageKey.remoteJid,
+          fallbackPhone: senderPhone,
+          messageKey: messageKey,
+          message: message,
+        }
+      );
+    }
+  } else {
+    // Personal message: extract phone from remoteJid
+    actualSenderJid = senderJid;
+    senderPhone = senderJid.split("@")[0];
+    logger.debug("📱 Personal message - extracted phone from remoteJid:", {
+      remoteJid: messageKey.remoteJid,
+      extractedPhone: senderPhone,
+    });
+  }
 
   // Extract sender name from message
   const senderName =
     message?.pushName || message?.verifiedBizName || "Unknown User";
 
-  return { senderJid, isGroup, senderPhone, senderName };
+  // Validate if the extracted phone looks like a real phone number
+  const isValidPhone =
+    senderPhone.match(/^62\d{9,13}$/) ||
+    senderPhone.match(/^08\d{8,12}$/) ||
+    senderPhone.match(/^\d{10,15}$/);
+
+  logger.debug("👤 Final sender info:", {
+    senderJid: actualSenderJid,
+    isGroup,
+    senderPhone,
+    senderName,
+    isValidPhone: !!isValidPhone,
+    phoneLength: senderPhone.length,
+  });
+
+  return { senderJid: actualSenderJid, isGroup, senderPhone, senderName };
 };
 
 // Process incoming message
@@ -77,17 +180,56 @@ const processIncomingMessage = async (sock, message) => {
       const thresholdMs = config.whatsapp.messageAgeThreshold * 1000; // Convert seconds to milliseconds
 
       if (messageAge > thresholdMs) {
-        logger.debug(
-          `⏰ Ignoring old message (${Math.round(messageAge / 1000)}s old)`,
+        logger.info(
+          `⏰ OLD MESSAGE (${Math.round(
+            messageAge / 1000
+          )}s old) - Marking as read but skipping triggers - ID: ${
+            message.key.id
+          }`,
           {
             messageId: message.key.id,
             messageAge: `${Math.round(messageAge / 1000)}s`,
             threshold: `${config.whatsapp.messageAgeThreshold}s`,
             sender: message.key.remoteJid?.split("@")[0],
+            timestamp: new Date(message.messageTimestamp * 1000).toLocaleString(
+              "id-ID",
+              { timeZone: "Asia/Jakarta" }
+            ),
           }
         );
-        return null; // Skip processing old messages
+
+        // Still mark old messages as read, but don't process triggers
+        try {
+          await simulateReadMessage(sock, message.key);
+          logger.debug(`👁️ Old message marked as read - ID: ${message.key.id}`);
+        } catch (readError) {
+          logger.warn(
+            `⚠️ Failed to mark old message as read - ID: ${message.key.id}:`,
+            readError.message
+          );
+        }
+
+        return null; // Skip further processing (triggers, storage) for old messages
       }
+
+      // Log that we're processing a recent message
+      logger.info(
+        `✅ PROCESSING RECENT MESSAGE (${Math.round(
+          messageAge / 1000
+        )}s old) - ID: ${message.key.id}`,
+        {
+          messageId: message.key.id,
+          messageAge: `${Math.round(messageAge / 1000)}s`,
+          threshold: `${config.whatsapp.messageAgeThreshold}s`,
+          sender: message.key.remoteJid?.split("@")[0],
+          timestamp: new Date(message.messageTimestamp * 1000).toLocaleString(
+            "id-ID",
+            { timeZone: "Asia/Jakarta" }
+          ),
+        }
+      );
+
+      // Only process recent messages below this point
 
       // Extract sender information (including name)
       const { senderJid, isGroup, senderPhone, senderName } = extractSenderInfo(
@@ -116,7 +258,9 @@ const processIncomingMessage = async (sock, message) => {
       // Enhanced logging with more context
       const logContext = {
         messageId: messageData.id,
-        sender: isGroup ? `Group: ${senderPhone}` : `Contact: ${senderPhone}`,
+        sender: isGroup
+          ? `Group: ${senderJid.split("@")[0]} (from: ${senderPhone})`
+          : `Contact: ${senderPhone}`,
         type: messageType,
         length: messageText.length,
         timestamp: new Date(messageData.timestamp * 1000).toLocaleString(
@@ -146,6 +290,7 @@ const processIncomingMessage = async (sock, message) => {
         messageId: messageData.id,
         fullText: messageText,
         rawMessage: message.message,
+        fullMessage: message, // Log the entire message object to see all available fields
       });
 
       // Simulate human-like reading behavior
@@ -205,8 +350,17 @@ const handleMessagesUpsert = async (sock, m) => {
   const messages = m.messages;
   const processedMessages = [];
 
-  for (const message of messages) {
+  logger.info(
+    `📥 BATCH: Processing ${messages.length} message(s) - Type: ${m.type}`
+  );
+
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i];
     try {
+      logger.info(
+        `📨 BATCH MESSAGE ${i + 1}/${messages.length} - ID: ${message.key.id}`
+      );
+
       // Handle PreKey errors for encrypted messages
       if (m.type === "notify" && message.messageStubType === "CIPHERTEXT") {
         logger.debug("🔐 Received encrypted message, processing...");
@@ -215,12 +369,24 @@ const handleMessagesUpsert = async (sock, m) => {
       const processedMessage = await processIncomingMessage(sock, message);
       if (processedMessage) {
         processedMessages.push(processedMessage);
+        logger.info(
+          `✅ BATCH MESSAGE ${i + 1} PROCESSED - ID: ${message.key.id}`
+        );
+      } else {
+        logger.info(
+          `⏭️ BATCH MESSAGE ${i + 1} SKIPPED (old message) - ID: ${
+            message.key.id
+          }`
+        );
       }
     } catch (error) {
-      logger.error("❌ Error in message processing:", error);
+      logger.error(`❌ Error in batch message ${i + 1} processing:`, error);
     }
   }
 
+  logger.info(
+    `📤 BATCH COMPLETE: ${processedMessages.length}/${messages.length} messages processed`
+  );
   return processedMessages;
 };
 

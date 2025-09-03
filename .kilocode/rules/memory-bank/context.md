@@ -6,7 +6,15 @@ The WhatsApp API is fully implemented and operational with advanced features inc
 
 ## Recent Developments
 
-### Latest Implementation (September 2025)
+### Latest Critical Fixes (September 2025)
+
+- **Message Age Filter Fix**: Fixed critical bug where old messages were logged as ignored but still triggered responses
+- **Group Phone Number Extraction**: Fixed incorrect phone number extraction for group messages using `participantPn` field
+- **Enhanced Message Processing**: Old messages now properly marked as read but skip trigger processing
+- **Comprehensive Debug Logging**: Added detailed batch processing logs for troubleshooting
+- **Smart Read Behavior**: Maintains WhatsApp read receipts for old messages while preventing spam triggers
+
+### Previous Implementation Features
 
 - **AI Integration**: Comprehensive AI utility functions using OpenRouter API with multiple models
 - **Image Upload Support**: Enhanced .a1 trigger with AMCloud integration for image processing and storage
@@ -88,11 +96,36 @@ The API is feature-complete for the initial requirements with enhanced AI and me
 ## Known Issues
 
 - None currently identified
+- **Message Age Filter Bug**: RESOLVED - Fixed critical issue where old messages triggered responses despite being logged as ignored
+- **Group Phone Number Extraction Bug**: RESOLVED - Fixed incorrect extraction using `participantPn` field instead of `participant`
 - PreKeyError issues resolved with latest updates
 - Session management working reliably
 - All endpoints tested and functional
 - AI functions working correctly with OpenRouter
 - Image upload integration tested and operational
-- Message age filtering preventing spam responses
-- Sender information extraction working correctly
+- Message age filtering now properly prevents spam responses
+- Sender information extraction working correctly for both personal and group messages
 - Enhanced .a1 trigger system fully operational
+
+## Recent Bug Fixes
+
+### Message Age Filter (September 2025)
+
+- **Issue**: Old messages (>60s) were logged as "ignored" but still triggered responses and webhooks
+- **Root Cause**: Logic flaw where `return null` didn't prevent trigger processing in batch operations
+- **Solution**: Enhanced logic to mark old messages as read but skip all trigger processing and storage
+- **Result**: Old messages now properly marked as read without triggering any automated responses
+
+### Group Phone Number Extraction (September 2025)
+
+- **Issue**: Group messages showed incorrect phone numbers (group IDs or invalid numbers) in webhook payloads
+- **Root Cause**: Using wrong field `participant` instead of `participantPn` for phone number extraction
+- **Solution**: Updated extraction logic to prioritize `participantPn` field which contains actual sender phone numbers
+- **Result**: Webhook payloads now show correct phone numbers for group message senders
+
+### Enhanced Debugging (September 2025)
+
+- **Added**: Comprehensive batch processing logs to track message handling
+- **Added**: Detailed message age filtering logs with timestamps
+- **Added**: Phone number validation and extraction method logging
+- **Added**: Clear distinction between processed vs skipped messages
